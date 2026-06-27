@@ -1,0 +1,45 @@
+{
+  "summary": "Tested Limitless Home Workout (Expo) app end-to-end. Backend: 18/20 pytest passed. Two failures: (1) GET /api/ returns 404 because @api.get('/') is declared AFTER app.include_router(api) (server.py:493 vs 504), so the route is never registered; (2) POST /api/stripe/create-payment-sheet returns 500 with stripe AuthenticationError 'Invalid API Key provided: sk_test_****gent' — STRIPE_API_KEY in backend/.env is a placeholder, not a real Stripe test key. Frontend (web preview): all critical flows pass — auth screen, signup→home navigation, home metrics + 9 body-part chips + 8 categories + 5 plans, Workouts tab (4 level chips, 5 plans), Progress, Profile, Plan detail with exercises list and START WORKOUT, active workout card with timer/Skip/Pause/progress, Premium screen with 'OPEN ON MOBILE TO UPGRADE' (intentional on web). Native Expo Go QR build is broken: prebuild fails with 'TypeError: Cannot read properties of undefined (reading merchantIdentifier)' from @stripe/stripe-react-native config plugin because app.json does not configure {merchantIdentifier} in the plugin entry.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "GET /api/", "issue": "Route returns 404. @api.get('/') in server.py:504 is defined AFTER app.include_router(api) on line 493 — FastAPI does not pick up routes added to a router after inclusion. Move the include_router call to the bottom of the file (after all routes) or move the / route above include_router.", "priority": "HIGH"},
+      {"endpoint": "POST /api/stripe/create-payment-sheet", "issue": "Returns 500 'Invalid API Key provided: sk_test_****gent'. STRIPE_API_KEY=sk_test_emergent in backend/.env is a placeholder. Need real Stripe test secret key for the endpoint to function.", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Stripe Payment Sheet (native)", "issue": "Even on native, the upgrade flow will fail because the backend /api/stripe/create-payment-sheet returns 500 due to invalid Stripe key (see backend critical). Web variant intentionally shows 'open on mobile' notice.", "affected_testIDs": ["upgrade-btn"]}
+    ],
+    "design_issues": [
+      {"screen": "active workout card", "issues": ["Lottie animation shown for some exercises (e.g. Jog in Place) appears unrelated to fitness (renders a 'woman with boxes' illustration). Some LottieFiles CDN URLs in seed_data.py likely 404'd or are replacement animations. Consider self-hosting curated Lottie JSON or substituting working public Lottie URLs for each exercise type."]}
+    ],
+    "react_native_issues": [
+      {"component": "@stripe/stripe-react-native config plugin", "issue": "Expo prebuild/native bundle throws: 'TypeError: Cannot read properties of undefined (reading merchantIdentifier)' at node_modules/@stripe/stripe-react-native/lib/commonjs/plugin/withStripe.js. app.json must include the plugin as an array form: ['@stripe/stripe-react-native', { merchantIdentifier: 'merchant.com.limitless.workout', enableGooglePay: false }]. Without this, the Expo Go / native build will not start. Reference: /var/log/supervisor/expo.err.log"}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_limitless_api.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "Fix server.py route registration: move `app.include_router(api)` (line 493) to AFTER the `@api.get('/')` root route (line 504), or move the root route up before include_router. Currently /api/ returns 404.",
+    "Replace STRIPE_API_KEY=sk_test_emergent in backend/.env with a real Stripe test secret key (sk_test_...). Without it, /api/stripe/create-payment-sheet returns 500 and the entire premium upgrade flow on native cannot work.",
+    "Add merchantIdentifier configuration for @stripe/stripe-react-native plugin in /app/frontend/app.json plugins array, e.g. ['@stripe/stripe-react-native', { 'merchantIdentifier': 'merchant.com.limitless.workout' }] so the Expo native bundler stops crashing.",
+    "Replace broken/placeholder Lottie URLs in /app/backend/seed_data.py (LOTTIE_FITNESS, LOTTIE_YOGA, etc.) — current assets render unrelated illustrations on the active workout card."
+  ],
+  "critical_code_review_comments": [
+    "server.py:493 vs 504 — route ordering bug: `api.get('/')` decorator after `app.include_router(api)` means the root route never reaches the FastAPI app.",
+    "server.py uses @app.on_event('startup'/'shutdown') which is deprecated in FastAPI; consider migrating to lifespan context manager.",
+    "server.py:475 — fallback `stripe.Event.construct_from(json.loads(payload), stripe.api_key)` will fail if api_key is invalid; webhook signature verification should be mandatory in production.",
+    "frontend/.env uses EXPO_PUBLIC_BACKEND_URL — confirmed correct (Expo convention). Auth/api.ts must consume this var; verify no hardcoded URLs exist in src/lib/api.ts."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_limitless_api.py (new)",
+    "/app/backend/tests/__init__.py (new, empty)"
+  ],
+  "success_rate": {"backend": "90% (18/20 pytest)", "frontend": "100% of tested web flows (auth, tabs, plan detail, active workout, premium upsell notice)"},
+  "seed_data_creation": "Test users created dynamically per run via /api/auth/signup with email test_<uuid|epoch>@limitless.app. No catalog seed data created — seed_data.py auto-seeds 8 categories, 5 plans, and per-category exercises on startup (verified seeded).",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend pytest at /app/backend/tests/test_limitless_api.py — run with `cd /app/backend && pytest tests/ -v`. Public URL: EXPO_PUBLIC_BACKEND_URL=https://gym-at-home-10.preview.emergentagent.com. After main agent fixes route ordering, /api/ root health test will pass. Stripe test needs a real sk_test_ key — until then, expect the create-payment-sheet test to fail with 500. Web preview cannot test native Stripe Payment Sheet flow (premium.tsx imports @stripe/stripe-react-native and is only reachable on native).",
+  "rca_of_issue": "1) /api/ 404: FastAPI evaluates `include_router` synchronously and copies the router's current route list into the app. The `api.get('/')` decorator on line 504 mutates the APIRouter object AFTER it has already been included on line 493, so the new route is never registered with the FastAPI app. Reproduction: `curl https://gym-at-home-10.preview.emergentagent.com/api/` → 404. Mitigation: move `app.include_router(api)` to the bottom of the file (after every `@api.*` decorator). 2) Stripe 500: STRIPE_API_KEY in backend/.env is literally 'sk_test_emergent' which is not a valid Stripe API key. The Stripe Python SDK returns AuthenticationError on the first call (stripe.Customer.create). Mitigation: set a real Stripe test secret key in backend/.env and `sudo supervisorctl restart backend`."
+}

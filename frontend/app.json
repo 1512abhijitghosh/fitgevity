@@ -33,6 +33,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#000000"
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.limitless.workout",
+          "enableGooglePay": false
+        }
       ]
     ],
     "experiments": {

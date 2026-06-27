@@ -1,0 +1,26 @@
+export const theme = {
+  color: {
+    surface: "#0F0F11",
+    surfaceSecondary: "#1C1C1E",
+    surfaceTertiary: "#2C2C2E",
+    onSurface: "#FFFFFF",
+    onSurfaceSecondary: "#EBEBF5",
+    onSurfaceTertiary: "#9A9A9F",
+    brand: "#FF4500",
+    brandSecondary: "#FF7043",
+    brandTertiary: "rgba(255,69,0,0.15)",
+    success: "#32D74B",
+    warning: "#FFD60A",
+    error: "#FF453A",
+    info: "#0A84FF",
+    border: "#38383A",
+    borderStrong: "#48484A",
+    gold: "#FFD700",
+  },
+  space: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 },
+  radius: { sm: 6, md: 12, lg: 20, pill: 999 },
+  font: {
+    display: "Bebas Neue",
+    text: "Manrope",
+  },
+} as const;
