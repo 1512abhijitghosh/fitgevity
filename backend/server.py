@@ -29,6 +29,9 @@ JWT_ALG = "HS256"
 JWT_EXP_DAYS = 30
 
 stripe.api_key = os.environ.get("STRIPE_API_KEY", "")
+# Route the Stripe SDK through the Emergent integrations proxy (pod-internal Stripe mock).
+_proxy_base = os.environ.get("INTEGRATION_PROXY_URL", "https://integrations.emergentagent.com")
+stripe.api_base = f"{_proxy_base.rstrip('/')}/stripe"
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 PREMIUM_PRICE_USD = 9.99  # one-time premium unlock for MVP
 
@@ -487,6 +490,11 @@ async def stripe_webhook(request: Request):
     return {"received": True}
 
 
+@api.get("/")
+async def root():
+    return {"status": "ok", "service": "limitless-home-workout"}
+
+
 # ============================================================================
 # Mount
 # ============================================================================
@@ -499,8 +507,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@api.get("/")
-async def root():
-    return {"status": "ok", "service": "limitless-home-workout"}
