@@ -116,8 +116,14 @@ class TestCatalog:
         assert isinstance(plan.get("exercises"), list)
         assert len(plan["exercises"]) > 0
         ex0 = plan["exercises"][0]
-        for k in ("name", "duration", "rest", "lottie", "instructions"):
+        for k in ("name", "duration", "rest", "frames", "instructions"):
             assert k in ex0, f"missing {k} on exercise"
+        # frames should be a list of 2 URL strings pointing to free-exercise-db
+        assert isinstance(ex0["frames"], list)
+        assert len(ex0["frames"]) == 2
+        for url in ex0["frames"]:
+            assert isinstance(url, str)
+            assert url.startswith("https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/")
 
     def test_plan_not_found(self, session):
         r = session.get(f"{API}/plans/does_not_exist")
@@ -130,8 +136,12 @@ class TestCatalog:
         assert len(items) >= 4
         for ex in items:
             assert ex["category_id"] == "abs"
-            for k in ("name", "duration", "rest", "lottie", "instructions"):
+            for k in ("name", "duration", "rest", "frames", "instructions"):
                 assert k in ex
+            assert isinstance(ex["frames"], list)
+            assert len(ex["frames"]) == 2
+            for url in ex["frames"]:
+                assert url.startswith("https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/")
 
 
 # --------- Workouts ---------

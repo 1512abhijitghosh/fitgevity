@@ -14,18 +14,18 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import LottieView from "lottie-react-native";
 
 import { api } from "@/src/lib/api";
 import { useAuth } from "@/src/lib/auth";
 import { theme } from "@/src/lib/theme";
+import { ExerciseAnimation } from "@/src/components/exercise-animation";
 
 type Exercise = {
   exercise_id?: string;
   name: string;
   duration: number;
   rest: number;
-  lottie: string;
+  frames: string[];
   instructions: string[];
 };
 
@@ -210,14 +210,12 @@ export default function WorkoutDetail() {
         {running && current && (
           <View style={styles.activeCard} testID="active-workout">
             <View style={[styles.timerRing, { borderColor: phase === "work" ? theme.color.brand : theme.color.success }]}>
-              <View style={styles.lottieBox}>
-                <LottieView
-                  source={{ uri: current.lottie }}
-                  autoPlay
-                  loop
-                  style={{ width: 160, height: 160 }}
-                />
-              </View>
+              <ExerciseAnimation
+                frames={current.frames}
+                size={180}
+                intervalMs={phase === "work" ? 450 : 900}
+                active
+              />
             </View>
             <Text style={styles.phaseLabel} testID="phase-label">
               {phase === "work" ? "TRAIN" : "REST"}
@@ -264,9 +262,12 @@ export default function WorkoutDetail() {
               style={[styles.exerciseRow, running && i === exerciseIdx && styles.exerciseRowActive]}
               testID={`exercise-row-${i}`}
             >
-              <View style={styles.exNumber}>
-                <Text style={styles.exNumberText}>{i + 1}</Text>
-              </View>
+              <ExerciseAnimation
+                frames={ex.frames}
+                size={56}
+                intervalMs={running && i === exerciseIdx ? 450 : 1200}
+                active
+              />
               <View style={{ flex: 1 }}>
                 <Text style={styles.exName}>{ex.name}</Text>
                 <Text style={styles.exMeta}>{ex.duration}s work · {ex.rest}s rest</Text>

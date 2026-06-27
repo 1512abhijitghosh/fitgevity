@@ -8,9 +8,10 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { api } from "@/src/lib/api";
 import { theme } from "@/src/lib/theme";
+import { ExerciseAnimation } from "@/src/components/exercise-animation";
 
 type Cat = { id: string; name: string; image: string };
-type Ex = { exercise_id: string; name: string; duration: number; rest: number; lottie: string };
+type Ex = { exercise_id: string; name: string; duration: number; rest: number; frames: string[] };
 
 export default function CategoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -68,9 +69,7 @@ export default function CategoryScreen() {
         <View style={{ paddingHorizontal: theme.space.lg, gap: theme.space.sm }}>
           {exercises.map((ex, i) => (
             <View key={ex.exercise_id || i} style={styles.row} testID={`cat-ex-${i}`}>
-              <View style={styles.thumb}>
-                <Ionicons name="fitness" size={20} color={theme.color.brand} />
-              </View>
+              <ExerciseAnimation frames={ex.frames} size={48} intervalMs={1200} active />
               <View style={{ flex: 1 }}>
                 <Text style={styles.exName}>{ex.name}</Text>
                 <Text style={styles.exMeta}>{ex.duration}s work · {ex.rest}s rest</Text>

@@ -1,0 +1,40 @@
+{
+  "summary": "Bug fix retest PASSED. The exercise animation issue is resolved end-to-end. Backend now returns a `frames` field (array of 2 URL strings) for every exercise via /api/categories/{id}/exercises and /api/plans/{id} (no more `lottie` field). All seeded URLs point to https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/... and HEAD requests return HTTP 200. Frontend ExerciseAnimation renders two stacked expo-image frames (testIDs `exercise-frame-0` and `exercise-frame-1`) inside the active-workout timer ring; their opacity toggles correctly (verified by 20×200ms polling: 2 distinct states (0,1) and (1,0) over 4s). Skipping with `skip-btn` advances to the next exercise and the frame URLs update accordingly (Jogging_Treadmill → Arm_Circles confirmed). Exercise list rows (8 in beginner_full) and category screen /category/abs (5 exercises = 10 frame elements) both render per-exercise animated thumbnails using the `frames` field — no placeholder Ionicons. Backend pytest: 20/20 passed (test_plan_beginner_full_has_exercises and test_abs_exercises updated to assert `frames` instead of `lottie`). Previously reported issues that remain UNCHANGED from iteration 1: Stripe key still placeholder (sk_test_emergent) — /api/stripe/create-payment-sheet currently returns 200 because tests run with a session that already has a customer, but a real Stripe test key is still needed for the premium flow; the @stripe/stripe-react-native config plugin still crashes Expo prebuild for native builds (web bundling unaffected — Expo web preview compiles and serves correctly).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/stripe/create-payment-sheet", "issue": "STRIPE_API_KEY=sk_test_emergent placeholder in backend/.env. Currently the pytest passes (likely because Stripe SDK error-handling path is hitting a cached/test happy-path) but a real Stripe test secret key is still required for production-quality verification of the premium upgrade flow."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "@stripe/stripe-react-native config plugin", "issue": "Expo prebuild still throws 'TypeError: Cannot read properties of undefined (reading merchantIdentifier)' from withStripeIos. This does not block the web preview (Expo Web Bundled successfully) but it WILL block any native (Expo Go / EAS) build. Fix: in /app/frontend/app.json convert the plugin entry to array form: [\"@stripe/stripe-react-native\", { \"merchantIdentifier\": \"merchant.com.limitless.workout\", \"enableGooglePay\": false }]. Reference: /var/log/supervisor/expo.err.log"}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_limitless_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Carry-over from iter1) Replace STRIPE_API_KEY in backend/.env with a real Stripe test secret key (sk_test_...).",
+    "(Carry-over from iter1) Update /app/frontend/app.json plugins array entry for @stripe/stripe-react-native to the object form including merchantIdentifier so Expo native prebuild succeeds.",
+    "No action required for the exercise animation bug — it is fixed."
+  ],
+  "critical_code_review_comments": [
+    "exercise-animation.tsx is clean, uses expo-image (correct package, not deprecated expo-av/expo-barcode-scanner), pre-stacks both frames with absoluteFill+opacity toggle which avoids flicker.",
+    "workout/[id].tsx passes intervalMs={phase === 'work' ? 450 : 900}, matching the 'work'/'rest' tempo described in the request.",
+    "seed_data.py uses a single helper imgs(folder) for all exercises — DRY and easy to maintain. Frame URLs all confirmed HTTP 200 on the public raw.githubusercontent.com host."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_limitless_api.py (updated test_plan_beginner_full_has_exercises and test_abs_exercises to assert `frames` array of 2 free-exercise-db URLs instead of legacy `lottie` field)"
+  ],
+  "success_rate": {"backend": "100% (20/20 pytest)", "frontend": "100% of retested flows (auth, plan detail, START WORKOUT, active-workout card with animated frames, opacity toggle, skip-btn advances frames, exercise list rows with thumbnails, category /abs with per-exercise thumbnails)"},
+  "seed_data_creation": "No new seed data created. Backend re-seeds 8 categories, 5 plans, and all exercises with new `frames` schema on startup (confirmed in backend logs). Reused existing test@limitless.app account from /app/memory/test_credentials.md (login succeeded).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug FIXED. If iterating further: backend tests at /app/backend/tests/test_limitless_api.py (run `cd /app/backend && pytest tests/ -v`). For UI, the exact verification recipe is: signin → goto /workout/beginner_full → click START WORKOUT → query selectors [data-testid='exercise-frame-0'] & [data-testid='exercise-frame-1'] → check src begins with https://raw.githubusercontent.com/yuhonas/free-exercise-db/ and computed opacity flips between (0,1) and (1,0) within ~1s. Stripe and native prebuild issues are independent of the animation bug and remain as documented in iteration_1.json.",
+  "rca_of_issue": "Original bug: exercise demos used unreliable LottieFiles CDN URLs (`lottie` field). Some returned 403 / unrelated illustrations. Fix shipped this iteration: replaced `lottie` with `frames` (two static jpg URLs per exercise from the open-source free-exercise-db GitHub repo at raw.githubusercontent.com). New ExerciseAnimation component (src/components/exercise-animation.tsx) stacks both <Image source={src}> components and toggles opacity at 450ms (work) / 900ms (rest) for a stop-motion effect — reliable on web + native, no Lottie dependency. Verification (this iteration): (1) curl /api/categories/abs/exercises → first exercise has frames=['https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cross-Body_Crunch/0.jpg', '...1.jpg'] and HEAD on each URL returns 200; (2) Playwright on active workout card observes opacity alternating between (0,1) and (1,0) confirming animation; (3) skip-btn cycles frames to the next exercise's URLs."
+}
