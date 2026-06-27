@@ -1,0 +1,187 @@
+{
+  "app_name": "Limitless Home Workout",
+  "personality": "7 Dark-First Utility DARK",
+  "personality_one_liner": "A sharp, reactive, and performance-oriented command center for home workouts, driven by high-impact typography and Ember/Signal Red accents on deep obsidian.",
+  "color": {
+    "surface": "#0F0F11",
+    "onSurface": "#FFFFFF",
+    "surfaceSecondary": "#1C1C1E",
+    "onSurfaceSecondary": "#EBEBF5",
+    "surfaceTertiary": "#2C2C2E",
+    "onSurfaceTertiary": "#D1D1D6",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#000000",
+    "brand": "#FF4500",
+    "brandPrimary": "#FF4500",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#FF7043",
+    "onBrandSecondary": "#FFFFFF",
+    "brandTertiary": "rgba(255, 69, 0, 0.15)",
+    "onBrandTertiary": "#FF7043",
+    "success": "#32D74B",
+    "onSuccess": "#000000",
+    "warning": "#FFD60A",
+    "onWarning": "#000000",
+    "error": "#FF453A",
+    "onError": "#FFFFFF",
+    "info": "#0A84FF",
+    "onInfo": "#FFFFFF",
+    "border": "#38383A",
+    "borderStrong": "#48484A",
+    "divider": "#2C2C2E"
+  },
+  "typography": {
+    "displayFontFamily": "Bebas Neue",
+    "textFontFamily": "Manrope",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 32,
+      "4xl": 48
+    }
+  },
+  "spacing": {
+    "rule": "Use tight md/sm padding for data density, but lg/xl around hero sections. Avoid excessive whitespace between metrics.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": "true",
+    "do's": [
+      "Use blur primarily on the bottom tab bar when content scrolls behind it.",
+      "Use glass overlay on sticky action buttons (like 'Start Workout') at the bottom of scrollable views."
+    ],
+    "dont's": [
+      "Do not blur cards, list rows, or standard panels. Maintain tonal separation (solid surfaceSecondary) for utility clarity."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Auth",
+      "purpose": "Secure entry via Emergent Google Login and Email/Password.",
+      "states": {
+        "loading": "Centered brand-colored pulse spinner.",
+        "empty": "N/A",
+        "error": "Red warning text below input fields."
+      },
+      "layout": "Hero image at the top with a gradient scrim to Dark, followed by a clean form using Manrope. Large primary CTA for Email login, separated by an 'or' divider, followed by a Google Sign-In button with a real Google logo."
+    },
+    {
+      "name": "Home",
+      "purpose": "Dashboard showing daily goals, streak indicators, and rapid access to workouts.",
+      "states": {
+        "loading": "Skeleton blocks matching the metric cards.",
+        "empty": "Empty state illustration reminding user to start their first workout.",
+        "error": "Centered retry message."
+      },
+      "layout": "Top section: High-impact Bebas Neue metrics (Streak, Calories, Active Minutes) layered on surfaceSecondary cards. Middle: Horizontal scrolling category chips (Abs, Arms, Chest, etc.). Bottom: Vertical list of Hero Workout Cards (Beginner/Intermediate/Advanced) using real bold imagery and top-to-bottom gradient scrims for text readability."
+    },
+    {
+      "name": "Workouts",
+      "purpose": "Full catalog of body-part and daily workout plans.",
+      "states": {
+        "loading": "Skeleton grids.",
+        "empty": "No workouts found for filter.",
+        "error": "Failed to load catalog."
+      },
+      "layout": "Grid or vertical list of workout cards, prominently grouped by category. Filter chips sticky at top. Images use gradient scrims."
+    },
+    {
+      "name": "Exercise Detail",
+      "purpose": "Immersive workout execution screen featuring Lottie animation area and active Rest Timer.",
+      "states": {
+        "loading": "Spinner over video placeholder.",
+        "empty": "N/A",
+        "error": "Failed to load animation."
+      },
+      "layout": "Hero area: Lottie animation container (with expo-image fallback). Below: Bold workout title and metadata. Middle: Step-by-step list of the exercise routine. Sticky Bottom: The Action Bar with 'Start Workout' button and an integrated Rest Timer. When active, Rest Timer uses a large circular animated ring (high-contrast neon green for rest phase, brand orange for active phase)."
+    },
+    {
+      "name": "Progress",
+      "purpose": "Visualize user's fitness journey through calendar and charts.",
+      "states": {
+        "loading": "Chart skeletons.",
+        "empty": "Empty state image with 'No workouts completed yet' text.",
+        "error": "Data fetch error."
+      },
+      "layout": "Monthly calendar grid at the top. Below: Line charts or bar graphs showing volume or calories over time, styled with brandPrimary strokes on surfaceSecondary."
+    },
+    {
+      "name": "Profile",
+      "purpose": "User stats, settings, and Stripe Premium Paywall.",
+      "states": {
+        "loading": "Skeleton rows.",
+        "empty": "N/A",
+        "error": "Error loading profile."
+      },
+      "layout": "Top: User avatar and high-level stats. Middle: Prominent Premium Paywall card (styled with gold/premium aesthetic) urging upgrade. Bottom: List of settings rows (Notifications, Account, etc.) with brandTertiary tinted Phosphor icons."
+    }
+  ],
+  "images": {
+    "auth_hero": {
+      "url": "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwyfHxneW0lMjB3b3Jrb3V0fGVufDB8fHx8MTc4MjUyNjg2M3ww&ixlib=rb-4.1.0&q=85",
+      "alt": "Grayscale photo of a muscular man working out on a pull-up bar."
+    },
+    "hero_workout_abs": {
+      "url": "https://images.unsplash.com/photo-1594381898411-846e7d193883?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNDR8MHwxfHNlYXJjaHwyfHxhYnMlMjB3b3Jrb3V0fGVufDB8fHx8MTc4MjUyNjg2M3ww&ixlib=rb-4.1.0&q=85",
+      "alt": "Woman in black tank top doing abs workout."
+    },
+    "hero_workout_arms": {
+      "url": "https://images.pexels.com/photos/3888405/pexels-photo-3888405.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Focused man working out, showcasing biceps."
+    },
+    "premium_banner": {
+      "url": "https://images.unsplash.com/photo-1761437856683-2d8c60cca73f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwyfHxwcmVtaXVtJTIwZ29sZCUyMGZpdG5lc3MlMjBncmFwaGljfGVufDB8fHx8MTc4MjUyNjg1OHww&ixlib=rb-4.1.0&q=85",
+      "alt": "Abstract golden metallic curves on a black background."
+    },
+    "progress_empty": {
+      "url": "https://images.unsplash.com/photo-1591258370814-01609b341790?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MTN8MHwxfHNlYXJjaHwxfHxlbXB0eSUyMHN0YXRlJTIwZml0bmVzc3xlbnwwfHx8fDE3ODI1MjY4NjN8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Woman lying on floor resting in empty state."
+    }
+  },
+  "haptics": {
+    "start_workout": "impactHeavy",
+    "rest_timer_tick": "selection",
+    "rest_timer_complete": "notificationSuccess",
+    "tab_switch": "selection",
+    "category_filter": "impactLight"
+  },
+  "instructions_to_main_agent": [
+    "Ensure the Lottie placeholder area on the Exercise Detail screen takes up significant hero space and includes an image fallback.",
+    "Implement the Rest Timer with a high-contrast circular animated ring and prominent audio/haptic cues (use success/neon-green for rest, brand Primary for active).",
+    "Use Dark-First Utility spacing: prefer tight `sm`/`md` padding inside data cards, but use `lg` margins on the screen edges.",
+    "All Hero image cards must include a vertical gradient scrim (transparent to surface/surfaceSecondary) behind the text overlay to ensure readability.",
+    "Do not use emojis in the UI. Use Phosphor icons.",
+    "The Premium paywall should stand out using the provided premium_banner background image and slightly elevated typography hierarchy.",
+    "Implement horizontal scrolling category chips for body parts ('Abs', 'Arms', etc.) that are 36pt height inside a 56pt container."
+  ]
+}
