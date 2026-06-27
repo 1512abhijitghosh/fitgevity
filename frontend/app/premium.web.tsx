@@ -41,7 +41,7 @@ export default function PremiumScreen() {
             <View style={styles.crownWrap}>
               <Ionicons name="star" size={36} color="#0F0F11" />
             </View>
-            <Text style={styles.heroTitle}>GO LIMITLESS</Text>
+            <Text style={styles.heroTitle}>GO PREMIUM</Text>
             <Text style={styles.heroSub}>One-time payment. Lifetime access.</Text>
           </View>
         </View>

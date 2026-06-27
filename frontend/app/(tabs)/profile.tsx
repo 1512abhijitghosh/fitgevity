@@ -62,7 +62,7 @@ export default function ProfileScreen() {
                 <Ionicons name="star" size={12} color="#0F0F11" />
                 <Text style={styles.goldPillText}>UNLOCK PREMIUM</Text>
               </View>
-              <Text style={styles.premiumTitle}>GO LIMITLESS</Text>
+              <Text style={styles.premiumTitle}>GO PREMIUM</Text>
               <Text style={styles.premiumDesc}>
                 Unlock advanced plans, HIIT routines, and unlimited workouts.
               </Text>

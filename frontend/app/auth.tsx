@@ -103,9 +103,12 @@ export default function AuthScreen() {
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.heroContent}>
-            <Text style={styles.brandTag}>LIMITLESS</Text>
-            <Text style={styles.title}>HOME WORKOUT</Text>
-            <Text style={styles.subtitle}>Train anywhere. Push every limit.</Text>
+            <Image
+              source={require("../assets/images/fitgevity-logo.png")}
+              style={styles.brandLogo}
+              contentFit="contain"
+            />
+            <Text style={styles.subtitle}>Fit today. Strong tomorrow. Live longer.</Text>
           </View>
         </View>
 
@@ -198,17 +201,10 @@ export default function AuthScreen() {
 
 const styles = StyleSheet.create({
   scroll: { paddingBottom: theme.space.xxl },
-  heroWrap: { height: 320, justifyContent: "flex-end" },
-  heroContent: { padding: theme.space.xl },
-  brandTag: {
-    color: theme.color.brand,
-    fontSize: 12,
-    letterSpacing: 4,
-    fontWeight: "700",
-    marginBottom: theme.space.sm,
-  },
-  title: { color: "#fff", fontSize: 38, fontWeight: "900", letterSpacing: 1 },
-  subtitle: { color: theme.color.onSurfaceSecondary, marginTop: theme.space.sm, fontSize: 14 },
+  heroWrap: { height: 380, justifyContent: "flex-end" },
+  heroContent: { padding: theme.space.xl, alignItems: "center" },
+  brandLogo: { width: 220, height: 160, marginBottom: theme.space.sm },
+  subtitle: { color: theme.color.onSurfaceSecondary, marginTop: theme.space.sm, fontSize: 14, textAlign: "center" },
   formWrap: { paddingHorizontal: theme.space.xl, gap: theme.space.md },
   tabs: {
     flexDirection: "row",

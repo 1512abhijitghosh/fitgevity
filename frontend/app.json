@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Fitgevity",
+    "slug": "fitgevity",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,7 +37,7 @@
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "merchant.com.limitless.workout",
+          "merchantIdentifier": "merchant.com.fitgevity.workout",
           "enableGooglePay": false
         }
       ]
