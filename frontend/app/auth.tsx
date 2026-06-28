@@ -21,6 +21,7 @@ import { useAuth } from "@/src/lib/auth";
 import { theme } from "@/src/lib/theme";
 
 const HERO = "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?auto=format&fit=crop&w=900&q=80";
+const GOOGLE_AUTH_URL = process.env.EXPO_PUBLIC_GOOGLE_AUTH_URL;
 
 export default function AuthScreen() {
   const { signIn, signUp, signInWithGoogleSession } = useAuth();
@@ -54,6 +55,10 @@ export default function AuthScreen() {
   };
 
   const handleGoogle = async () => {
+    if (!GOOGLE_AUTH_URL) {
+      setError("Google sign-in is not configured");
+      return;
+    }
     setError(null);
     setLoading(true);
     try {
@@ -63,7 +68,7 @@ export default function AuthScreen() {
       } else {
         redirectUrl = Linking.createURL("auth");
       }
-      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+      const authUrl = `${GOOGLE_AUTH_URL}?redirect=${encodeURIComponent(redirectUrl)}`;
 
       if (Platform.OS === "web") {
         window.location.href = authUrl;
@@ -178,21 +183,25 @@ export default function AuthScreen() {
             )}
           </Pressable>
 
-          <View style={styles.dividerRow}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.divider} />
-          </View>
+          {GOOGLE_AUTH_URL ? (
+            <>
+              <View style={styles.dividerRow}>
+                <View style={styles.divider} />
+                <Text style={styles.dividerText}>OR</Text>
+                <View style={styles.divider} />
+              </View>
 
-          <Pressable
-            testID="auth-google-button"
-            style={styles.googleBtn}
-            onPress={handleGoogle}
-            disabled={loading}
-          >
-            <Ionicons name="logo-google" size={18} color="#0F0F11" />
-            <Text style={styles.googleBtnText}>Continue with Google</Text>
-          </Pressable>
+              <Pressable
+                testID="auth-google-button"
+                style={styles.googleBtn}
+                onPress={handleGoogle}
+                disabled={loading}
+              >
+                <Ionicons name="logo-google" size={18} color="#0F0F11" />
+                <Text style={styles.googleBtnText}>Continue with Google</Text>
+              </Pressable>
+            </>
+          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

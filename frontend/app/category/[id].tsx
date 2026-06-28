@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   thumb: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.color.brandTertiary, alignItems: "center", justifyContent: "center" },
   exName: { color: "#fff", fontWeight: "700", fontSize: 14 },
   exMeta: { color: theme.color.onSurfaceTertiary, fontSize: 12, marginTop: 2 },
-  bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.space.lg, backgroundColor: "rgba(15,15,17,0.95)", borderTopWidth: 1, borderTopColor: theme.color.border },
+  bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, paddingTop: theme.space.lg, paddingHorizontal: theme.space.lg, paddingBottom: theme.space.xxl, backgroundColor: "rgba(15,15,17,0.95)", borderTopWidth: 1, borderTopColor: theme.color.border },
   startBtn: { backgroundColor: theme.color.brand, paddingVertical: 16, borderRadius: theme.radius.md, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: theme.space.sm },
   startBtnText: { color: "#fff", fontWeight: "900", letterSpacing: 1, fontSize: 15 },
 });

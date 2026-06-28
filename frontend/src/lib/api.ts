@@ -6,16 +6,25 @@ export async function api<T = any>(
   path: string,
   opts: { method?: string; body?: any; auth?: boolean } = {},
 ): Promise<T> {
+  if (!BASE) {
+    throw new Error("Backend URL is not configured");
+  }
+
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (opts.auth !== false) {
     const t = await getToken();
     if (t) headers["Authorization"] = `Bearer ${t}`;
   }
-  const res = await fetch(`${BASE}/api${path}`, {
-    method: opts.method || "GET",
-    headers,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/api${path}`, {
+      method: opts.method || "GET",
+      headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+    });
+  } catch {
+    throw new Error(`Cannot reach backend at ${BASE}`);
+  }
   const text = await res.text();
   let data: any = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }

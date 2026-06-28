@@ -19,6 +19,7 @@ import { api } from "@/src/lib/api";
 import { useAuth } from "@/src/lib/auth";
 import { theme } from "@/src/lib/theme";
 import { ExerciseAnimation } from "@/src/components/exercise-animation";
+import { getExerciseDetails } from "@/src/lib/exercise-details";
 
 type Exercise = {
   exercise_id?: string;
@@ -66,6 +67,8 @@ export default function WorkoutDetail() {
       try {
         const p = await api<Plan>(`/plans/${id}`);
         setPlan(p);
+        const frameUrls = p.exercises.flatMap((ex) => ex.frames || []);
+        Image.prefetch(frameUrls).catch(() => {});
       } finally {
         setLoading(false);
       }
@@ -73,6 +76,7 @@ export default function WorkoutDetail() {
   }, [id]);
 
   const current = plan?.exercises[exerciseIdx];
+  const currentDetails = current ? getExerciseDetails(current.name) : null;
   const phaseDuration = current ? (phase === "work" ? current.duration : current.rest) : 0;
   const progress = phaseDuration > 0 ? 1 - secondsLeft / phaseDuration : 0;
 
@@ -130,6 +134,16 @@ export default function WorkoutDetail() {
     startTimer(plan.exercises[next].duration);
   };
 
+  const jumpToExercise = (idx: number) => {
+    if (!plan || idx < 0 || idx >= plan.exercises.length) return;
+    haptic("light");
+    setExerciseIdx(idx);
+    setPhase("work");
+    if (running) {
+      startTimer(plan.exercises[idx].duration);
+    }
+  };
+
   const startWorkout = () => {
     if (!plan) return;
     if (plan.is_premium && !user?.is_premium) {
@@ -138,10 +152,9 @@ export default function WorkoutDetail() {
     }
     haptic("heavy");
     setRunning(true);
-    setExerciseIdx(0);
     setPhase("work");
     setTotalElapsed(0);
-    startTimer(plan.exercises[0].duration);
+    startTimer(plan.exercises[exerciseIdx].duration);
   };
 
   const pause = () => {
@@ -254,35 +267,30 @@ export default function WorkoutDetail() {
           </View>
         )}
 
-        <Text style={styles.sectionTitle}>EXERCISES</Text>
-        <View style={{ paddingHorizontal: theme.space.lg, gap: theme.space.sm }}>
-          {plan.exercises.map((ex, i) => (
-            <View
-              key={`${ex.name}-${i}`}
-              style={[styles.exerciseRow, running && i === exerciseIdx && styles.exerciseRowActive]}
-              testID={`exercise-row-${i}`}
-            >
-              <ExerciseAnimation
-                frames={ex.frames}
-                size={56}
-                intervalMs={running && i === exerciseIdx ? 450 : 1200}
-                active
-              />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exName}>{ex.name}</Text>
-                <Text style={styles.exMeta}>{ex.duration}s work · {ex.rest}s rest</Text>
-              </View>
-              {running && i === exerciseIdx && (
-                <View style={styles.runDot} />
-              )}
-            </View>
-          ))}
-        </View>
+        {current && currentDetails && (
+          <View style={styles.detailPanel}>
+            <Text style={styles.detailEyebrow}>{running ? "CURRENT EXERCISE" : "SELECTED EXERCISE"}</Text>
+            <Text style={styles.detailTitle}>{current.name}</Text>
 
-        {current && (
-          <View style={{ paddingHorizontal: theme.space.lg, marginTop: theme.space.lg }}>
-            <Text style={styles.sectionTitle}>HOW TO DO IT</Text>
-            {(running ? current : plan.exercises[0]).instructions.map((step, i) => (
+            <Text style={styles.detailSectionTitle}>TARGET AREAS</Text>
+            <View style={styles.chipRow}>
+              {currentDetails.bodyParts.map((part) => (
+                <View key={part} style={styles.targetChip}>
+                  <Text style={styles.targetChipText}>{part}</Text>
+                </View>
+              ))}
+            </View>
+
+            <Text style={styles.detailSectionTitle}>BENEFITS</Text>
+            {currentDetails.benefits.map((benefit, i) => (
+              <View key={i} style={styles.benefitRow}>
+                <Ionicons name="checkmark-circle" size={16} color={theme.color.success} />
+                <Text style={styles.benefitText}>{benefit}</Text>
+              </View>
+            ))}
+
+            <Text style={styles.detailSectionTitle}>HOW TO DO IT</Text>
+            {current.instructions.map((step, i) => (
               <View key={i} style={styles.stepRow}>
                 <View style={styles.stepDot}><Text style={styles.stepDotText}>{i + 1}</Text></View>
                 <Text style={styles.stepText}>{step}</Text>
@@ -290,6 +298,44 @@ export default function WorkoutDetail() {
             ))}
           </View>
         )}
+
+        <Text style={styles.sectionTitle}>EXERCISES</Text>
+        <View style={{ paddingHorizontal: theme.space.lg, gap: theme.space.sm }}>
+          {plan.exercises.map((ex, i) => {
+            const selected = i === exerciseIdx;
+            return (
+            <Pressable
+              key={`${ex.name}-${i}`}
+              style={[styles.exerciseRow, selected && styles.exerciseRowSelected]}
+              testID={`exercise-row-${i}`}
+              onPress={() => jumpToExercise(i)}
+            >
+              <ExerciseAnimation
+                frames={ex.frames}
+                size={56}
+                intervalMs={running && selected ? 450 : 1200}
+                active={running && selected}
+              />
+              <View style={{ flex: 1 }}>
+                <View style={styles.exerciseNameRow}>
+                  <Text style={[styles.exName, selected && styles.exNameSelected]}>{ex.name}</Text>
+                  {selected && (
+                    <View style={styles.selectedPill}>
+                      <Text style={styles.selectedPillText}>SELECTED</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.exMeta}>{ex.duration}s work · {ex.rest}s rest</Text>
+              </View>
+              <Ionicons
+                name={selected ? "checkmark-circle" : "chevron-forward"}
+                size={18}
+                color={selected ? theme.color.brand : theme.color.onSurfaceTertiary}
+              />
+            </Pressable>
+            );
+          })}
+        </View>
       </ScrollView>
 
       {!running && phase !== "done" && (
@@ -356,12 +402,32 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: "#fff", fontWeight: "900", letterSpacing: 1 },
   sectionTitle: { color: "#fff", fontWeight: "900", letterSpacing: 2, fontSize: 13, paddingHorizontal: theme.space.lg, marginTop: theme.space.lg, marginBottom: theme.space.md },
   exerciseRow: { flexDirection: "row", alignItems: "center", gap: theme.space.md, backgroundColor: theme.color.surfaceSecondary, padding: theme.space.md, borderRadius: theme.radius.md, borderWidth: 1, borderColor: theme.color.border },
-  exerciseRowActive: { borderColor: theme.color.brand },
+  exerciseRowSelected: { borderColor: theme.color.brand, backgroundColor: "rgba(255,69,0,0.12)" },
+  exerciseNameRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: theme.space.sm },
   exNumber: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.color.brandTertiary, alignItems: "center", justifyContent: "center" },
   exNumberText: { color: theme.color.brandSecondary, fontWeight: "900" },
   exName: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  exNameSelected: { color: theme.color.brandSecondary },
   exMeta: { color: theme.color.onSurfaceTertiary, fontSize: 12, marginTop: 2 },
-  runDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: theme.color.brand },
+  selectedPill: { backgroundColor: theme.color.brand, borderRadius: theme.radius.pill, paddingHorizontal: theme.space.sm, paddingVertical: 3 },
+  selectedPillText: { color: "#fff", fontWeight: "900", fontSize: 9, letterSpacing: 1 },
+  detailPanel: {
+    marginHorizontal: theme.space.lg,
+    marginTop: theme.space.lg,
+    padding: theme.space.lg,
+    backgroundColor: theme.color.surfaceSecondary,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    borderColor: theme.color.border,
+  },
+  detailEyebrow: { color: theme.color.brandSecondary, fontWeight: "900", letterSpacing: 2, fontSize: 11 },
+  detailTitle: { color: "#fff", fontSize: 22, fontWeight: "900", marginTop: 4 },
+  detailSectionTitle: { color: "#fff", fontWeight: "900", letterSpacing: 1, fontSize: 12, marginTop: theme.space.lg, marginBottom: theme.space.sm },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: theme.space.sm },
+  targetChip: { backgroundColor: theme.color.brandTertiary, borderRadius: theme.radius.pill, paddingHorizontal: theme.space.md, paddingVertical: 7 },
+  targetChipText: { color: theme.color.brandSecondary, fontWeight: "800", fontSize: 12 },
+  benefitRow: { flexDirection: "row", alignItems: "flex-start", gap: theme.space.sm, marginBottom: theme.space.sm },
+  benefitText: { color: theme.color.onSurfaceSecondary, flex: 1, lineHeight: 20, fontSize: 14 },
   stepRow: { flexDirection: "row", gap: theme.space.md, alignItems: "flex-start", marginBottom: theme.space.sm },
   stepDot: { width: 22, height: 22, borderRadius: 11, backgroundColor: theme.color.brand, alignItems: "center", justifyContent: "center", marginTop: 2 },
   stepDotText: { color: "#fff", fontWeight: "900", fontSize: 12 },
@@ -369,7 +435,9 @@ const styles = StyleSheet.create({
   bottomBar: {
     position: "absolute",
     left: 0, right: 0, bottom: 0,
-    padding: theme.space.lg,
+    paddingTop: theme.space.lg,
+    paddingHorizontal: theme.space.lg,
+    paddingBottom: theme.space.xxl,
     backgroundColor: "rgba(15,15,17,0.95)",
     borderTopWidth: 1, borderTopColor: theme.color.border,
   },

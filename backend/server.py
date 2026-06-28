@@ -29,11 +29,12 @@ JWT_ALG = "HS256"
 JWT_EXP_DAYS = 30
 
 stripe.api_key = os.environ.get("STRIPE_API_KEY", "")
-# Route the Stripe SDK through the Emergent integrations proxy (pod-internal Stripe mock).
-_proxy_base = os.environ.get("INTEGRATION_PROXY_URL", "https://integrations.emergentagent.com")
-stripe.api_base = f"{_proxy_base.rstrip('/')}/stripe"
+_proxy_base = os.environ.get("INTEGRATION_PROXY_URL")
+if _proxy_base:
+    stripe.api_base = f"{_proxy_base.rstrip('/')}/stripe"
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 PREMIUM_PRICE_USD = 9.99  # one-time premium unlock for MVP
+GOOGLE_SESSION_DATA_URL = os.environ.get("GOOGLE_SESSION_DATA_URL")
 
 mongo_url = os.environ["MONGO_URL"]
 client = AsyncIOMotorClient(mongo_url)
@@ -228,13 +229,16 @@ async def login(body: LoginBody):
 
 
 # ============================================================================
-# Auth - Google (Emergent session)
+# Auth - Google session
 # ============================================================================
 @api.post("/auth/google", response_model=TokenOut)
 async def google_session(body: GoogleSessionBody):
+    if not GOOGLE_SESSION_DATA_URL:
+        raise HTTPException(status_code=503, detail="Google auth not configured")
+
     async with httpx.AsyncClient(timeout=15.0) as http:
         r = await http.get(
-            "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+            GOOGLE_SESSION_DATA_URL,
             headers={"X-Session-ID": body.session_id},
         )
     if r.status_code != 200:
@@ -440,7 +444,7 @@ async def create_payment_sheet(user: dict = Depends(current_user)):
         "paymentIntent": intent.client_secret,
         "ephemeralKey": ephemeral_key.secret,
         "customer": customer_id,
-        "publishableKey": os.environ.get("EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY", "pk_test_emergent"),
+        "publishableKey": os.environ.get("EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY", ""),
         "amount": PREMIUM_PRICE_USD,
     }
 
